@@ -853,7 +853,7 @@ const ConstructionForm = () => {
   </CardHeader>
         <CardContent>
           <div className="mb-6">
-            <div className="flex space-x-2 overflow-x-auto">
+            <div className="flex space-x-2 overflow-x-auto justify-center">
               {['Basic Info', 'Property Details', 'Design Preferences', 'Special Features', 'Review'].map((step, index) => (
                 <button
                   key={step}
