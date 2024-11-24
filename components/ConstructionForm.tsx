@@ -834,7 +834,7 @@ const ConstructionForm = () => {
       <div className="flex justify-between items-start w-full">
         <div className="relative h-16 w-48 transition-transform hover:scale-105">
           <Image
-            src="/logo.png"
+            src="/Logo.PNG"
             alt="Barnhaus Steel Builders Logo"
             width={192}
             height={64}
