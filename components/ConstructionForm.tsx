@@ -3,6 +3,7 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
+import logo from '../public/logo.png';
 
 interface FormData {
   // Your existing interface remains exactly the same
@@ -834,12 +835,12 @@ const ConstructionForm = () => {
       <div className="flex justify-between items-start w-full">
         <div className="relative h-16 w-48 transition-transform hover:scale-105">
           <Image
-            src="/Logo.png"
+            src={logo}
             alt="Barnhaus Steel Builders Logo"
-            fill
-            style={{ objectFit: 'contain' }}
             priority
-            className="drop-shadow-md"
+            quality={100}
+            placeholder="blur"
+            className="drop-shadow-md object-contain"
           />
         </div>
       </div>

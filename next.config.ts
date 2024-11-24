@@ -3,10 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: 'standalone',
   images: {
-    unoptimized: true,
+    unoptimized: false,  // Let Next.js handle optimization
   },
-  // Add a comment to trigger deployment
-  /* Trigger new deployment */
 };
 
 export default nextConfig;
