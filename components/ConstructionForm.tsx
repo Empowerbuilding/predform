@@ -833,10 +833,12 @@ const ConstructionForm = () => {
     <div className="flex flex-col">
       <div className="flex justify-between items-start w-full">
         <div className="relative h-16 w-48 transition-transform hover:scale-105">
-          <img
+          <Image
             src="/Logo.png"
             alt="Barnhaus Steel Builders Logo"
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            fill
+            style={{ objectFit: 'contain' }}
+            priority
             className="drop-shadow-md"
           />
         </div>
