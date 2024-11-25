@@ -3,6 +3,7 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
+import { FormField, TextInput, RadioGroup, CheckboxGroup } from './FormComponents';
 
 interface FormData {
   // Your existing interface remains exactly the same
@@ -827,91 +828,92 @@ const ConstructionForm = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <Card>
-      <CardHeader className="pb-8 border-b">
-    <div className="flex flex-col">
-      <div className="flex justify-between items-start w-full">
-        <div className="relative h-16 w-48 transition-transform hover:scale-105">
-          <Image
-            src="/Logo.PNG"
-            alt="Barnhaus Steel Builders Logo"
-            width={192}
-            height={64}
-            priority
-            className="drop-shadow-md object-contain"
-          />
-        </div>
-      </div>
-      <div className="text-center mt-6">
-        <CardTitle className="text-3xl font-bold">Pre-Design Form</CardTitle>
-        <p className="mt-2 text-gray-600">
-          Help us understand your construction needs
-        </p>
-      </div>
-    </div>
-  </CardHeader>
-        <CardContent>
-          <div className="mb-6">
-            <div className="flex space-x-2 overflow-x-auto justify-center">
+    <div className="min-h-screen bg-gray-50">
+      <Card className="mx-auto border-none rounded-none sm:rounded-lg sm:my-4 sm:mx-4 shadow-none sm:shadow-sm">
+        <CardHeader className="border-b space-y-4 px-4 py-6 sm:px-6">
+          <div className="flex flex-col items-center">
+            <div className="relative h-12 w-40 sm:h-16 sm:w-48">
+              <Image
+                src="/Logo.PNG"
+                alt="Barnhaus Steel Builders Logo"
+                fill
+                priority
+                className="object-contain"
+              />
+            </div>
+            <div className="text-center mt-4">
+              <CardTitle className="text-2xl sm:text-3xl">Pre-Design Form</CardTitle>
+              <p className="mt-2 text-sm text-gray-600">
+                Help us understand your construction needs
+              </p>
+            </div>
+          </div>
+          
+          <div className="w-full mt-6">
+            <div className="flex space-x-1 sm:space-x-2 overflow-x-auto px-1 py-2">
               {['Basic Info', 'Property Details', 'Design Preferences', 'Special Features', 'Review'].map((step, index) => (
                 <button
                   key={step}
-                  type="button"
                   onClick={(e) => {
                     e.preventDefault();
                     setCurrentStep(index + 1);
                   }}
-                  className={`px-4 py-2 rounded whitespace-nowrap ${
-                    currentStep === index + 1
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-200 hover:bg-gray-300'
-                  }`}
+                  className={`
+                    flex-none px-3 py-1.5 text-sm rounded-full whitespace-nowrap
+                    ${currentStep === index + 1 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-gray-100 text-gray-600'
+                    }
+                  `}
                 >
                   {step}
                 </button>
               ))}
             </div>
-            <div className="mt-2 h-2 bg-gray-200 rounded">
+            <div className="mt-4 h-1.5 bg-gray-100 rounded-full">
               <div 
-                className="h-full bg-blue-500 rounded transition-all duration-300"
+                className="h-full bg-blue-500 rounded-full transition-all duration-300"
                 style={{ width: `${(currentStep / 5) * 100}%` }}
               />
             </div>
           </div>
-
+        </CardHeader>
+  
+        <CardContent className="p-4 sm:p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {renderStepContent()}
-            
-            <div className="mt-6 flex justify-between">
-              {currentStep > 1 && (
-                <button
-                  type="button"
-                  onClick={handlePreviousStep}
-                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
-                >
-                  Previous
-                </button>
-              )}
-              
-              {currentStep < 5 && (
-                <button
-                  type="button"
-                  onClick={handleNextStep}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors ml-auto"
-                >
-                  Next
-                </button>
-              )}
-              
-              {currentStep === 5 && (
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors ml-auto"
-                >
-                  Submit Form
-                </button>
-              )}
+            <div className="space-y-6">
+              {renderStepContent()}
+            </div>
+  
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 sm:relative sm:bg-transparent sm:border-t-0 sm:p-0 sm:mt-6">
+              <div className="flex justify-between max-w-4xl mx-auto">
+                {currentStep > 1 && (
+                  <button
+                    type="button"
+                    onClick={handlePreviousStep}
+                    className="px-5 py-2.5 bg-gray-500 text-white rounded-full text-sm font-medium hover:bg-gray-600 transition-colors"
+                  >
+                    Previous
+                  </button>
+                )}
+                
+                {currentStep < 5 ? (
+                  <button
+                    type="button"
+                    onClick={handleNextStep}
+                    className="px-5 py-2.5 bg-blue-500 text-white rounded-full text-sm font-medium hover:bg-blue-600 transition-colors ml-auto"
+                  >
+                    Next
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 bg-green-500 text-white rounded-full text-sm font-medium hover:bg-green-600 transition-colors ml-auto"
+                  >
+                    Submit
+                  </button>
+                )}
+              </div>
             </div>
           </form>
         </CardContent>
