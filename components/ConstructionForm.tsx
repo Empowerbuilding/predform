@@ -284,7 +284,7 @@ const ConstructionForm = () => {
   };
 
   const renderBasicInfo = () => (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <FormField label="Your Full Name">
         <TextInput
           name="name"
@@ -348,7 +348,7 @@ const ConstructionForm = () => {
   );
 
   const renderPropertyDetails = () => (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Living (Sqft)">
           <TextInput
@@ -356,6 +356,7 @@ const ConstructionForm = () => {
             value={formData.living}
             onChange={handleInputChange}
             placeholder="Enter square footage"
+            type="number"
           />
         </FormField>
         
@@ -365,6 +366,7 @@ const ConstructionForm = () => {
             value={formData.patios}
             onChange={handleInputChange}
             placeholder="Enter square footage"
+            type="number"
           />
         </FormField>
       </div>
@@ -376,6 +378,7 @@ const ConstructionForm = () => {
             value={formData.garage}
             onChange={handleInputChange}
             placeholder="Enter square footage"
+            type="number"
           />
         </FormField>
       </div>
@@ -387,6 +390,7 @@ const ConstructionForm = () => {
             value={formData.bedrooms}
             onChange={handleInputChange}
             type="number"
+            placeholder="Enter number of bedrooms"
           />
         </FormField>
         
@@ -396,6 +400,7 @@ const ConstructionForm = () => {
             value={formData.bathrooms}
             onChange={handleInputChange}
             type="number"
+            placeholder="Enter number of bathrooms"
           />
         </FormField>
       </div>
@@ -404,7 +409,10 @@ const ConstructionForm = () => {
         <CheckboxGroup
           section="desiredRooms"
           options={Object.entries(formData.desiredRooms).map(([key, _]) => ({
-            label: key.replace(/([A-Z])/g, ' $1').trim(),
+            label: key
+              .split(/(?=[A-Z])/)
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+              .join(' '),
             value: key
           }))}
           values={formData.desiredRooms}
@@ -434,9 +442,9 @@ const ConstructionForm = () => {
         <RadioGroup
           name="ceilingHeight"
           options={[
-            { label: "9'", value: '9' },
-            { label: "10'", value: '10' },
-            { label: "12'", value: '12' }
+            { label: '9 Feet', value: '9' },
+            { label: '10 Feet', value: '10' },
+            { label: '12 Feet', value: '12' }
           ]}
           value={formData.ceilingHeight}
           onChange={handleInputChange}
@@ -447,7 +455,10 @@ const ConstructionForm = () => {
         <CheckboxGroup
           section="kitchenFeatures"
           options={Object.entries(formData.kitchenFeatures).map(([key, _]) => ({
-            label: key.replace(/([A-Z])/g, ' $1').trim(),
+            label: key
+              .split(/(?=[A-Z])/)
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+              .join(' '),
             value: key
           }))}
           values={formData.kitchenFeatures}
@@ -459,7 +470,10 @@ const ConstructionForm = () => {
         <CheckboxGroup
           section="masterBathroom"
           options={Object.entries(formData.masterBathroom).map(([key, _]) => ({
-            label: key.replace(/([A-Z])/g, ' $1').trim(),
+            label: key
+              .split(/(?=[A-Z])/)
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+              .join(' '),
             value: key
           }))}
           values={formData.masterBathroom}
@@ -471,7 +485,10 @@ const ConstructionForm = () => {
         <CheckboxGroup
           section="masterCloset"
           options={Object.entries(formData.masterCloset).map(([key, _]) => ({
-            label: key.replace(/([A-Z])/g, ' $1').trim(),
+            label: key
+              .split(/(?=[A-Z])/)
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+              .join(' '),
             value: key
           }))}
           values={formData.masterCloset}
@@ -483,7 +500,7 @@ const ConstructionForm = () => {
         <CheckboxGroup
           section="countertopFinishes"
           options={Object.entries(formData.countertopFinishes).map(([key, _]) => ({
-            label: key.charAt(0).toUpperCase() + key.slice(1),
+            label: key.charAt(0).toUpperCase() + key.slice(1).toLowerCase(),
             value: key
           }))}
           values={formData.countertopFinishes}
@@ -495,7 +512,10 @@ const ConstructionForm = () => {
         <CheckboxGroup
           section="flooringFinishes"
           options={Object.entries(formData.flooringFinishes).map(([key, _]) => ({
-            label: key.replace(/([A-Z])/g, ' $1').trim(),
+            label: key
+              .split(/(?=[A-Z])/)
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+              .join(' '),
             value: key
           }))}
           values={formData.flooringFinishes}
@@ -524,7 +544,10 @@ const ConstructionForm = () => {
           <CheckboxGroup
             section="fireplaceType"
             options={Object.entries(formData.fireplaceType).map(([key, _]) => ({
-              label: key.replace(/([A-Z])/g, ' $1').trim(),
+              label: key
+                .split(/(?=[A-Z])/)
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' '),
               value: key
             }))}
             values={formData.fireplaceType}
@@ -537,7 +560,10 @@ const ConstructionForm = () => {
         <CheckboxGroup
           section="porchLocations"
           options={Object.entries(formData.porchLocations).map(([key, _]) => ({
-            label: key.replace(/([A-Z])/g, ' $1').trim(),
+            label: key
+              .split(/(?=[A-Z])/)
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+              .join(' '),
             value: key
           }))}
           values={formData.porchLocations}
@@ -563,7 +589,7 @@ const ConstructionForm = () => {
             name="patioCeilingMaterial"
             value={formData.patioCeilingMaterial}
             onChange={handleInputChange}
-            placeholder="Type here..."
+            placeholder="Enter ceiling material"
           />
         </FormField>
       )}
@@ -584,7 +610,10 @@ const ConstructionForm = () => {
         <CheckboxGroup
           section="insulationType"
           options={Object.entries(formData.insulationType).map(([key, _]) => ({
-            label: key.replace(/([A-Z])/g, ' $1').trim(),
+            label: key
+              .split(/(?=[A-Z])/)
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+              .join(' '),
             value: key
           }))}
           values={formData.insulationType}
@@ -595,57 +624,55 @@ const ConstructionForm = () => {
       <FormField label="Additional Requests">
         <textarea
           name="additionalRequests"
-          className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          rows={3}
+          className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
+          rows={4}
           value={formData.additionalRequests}
           onChange={handleInputChange}
-          placeholder="Type here..."
+          placeholder="Enter any additional requests here..."
         />
       </FormField>
     </div>
   );
 
   const renderReview = () => (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <FormField label="Are there any items or spaces that you would like in your new home that were not covered in this predesign form?">
         <textarea
           name="additionalItems"
-          className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          rows={3}
+          className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
+          rows={4}
           value={formData.additionalItems}
           onChange={handleInputChange}
-          placeholder="Type here..."
+          placeholder="Enter any additional items or spaces here..."
         />
       </FormField>
   
       <FormField label="Are there any specific items that you DO NOT WANT in your new home?">
         <textarea
           name="unwantedItems"
-          className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          rows={3}
+          className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
+          rows={4}
           value={formData.unwantedItems}
           onChange={handleInputChange}
-          placeholder="Type here..."
+          placeholder="Enter any unwanted items here..."
         />
       </FormField>
   
       <div className="space-y-4">
         <FormField label="Pinterest Board of Ideas for:">
-          <div className="mb-4">
-            <ul className="list-disc pl-5 space-y-1 text-gray-600">
-              <li>Exterior Look</li>
-              <li>Interior Design</li>
-              <li>Windows</li>
-              <li>Bathrooms</li>
-              <li>Bedroom / Closets</li>
-              <li>Kitchen</li>
-              <li>Mudroom</li>
-              <li>Office</li>
-              <li>Great Room</li>
-              <li>Floorplans you like</li>
-              <li>Store (if applicable)</li>
-            </ul>
-          </div>
+          <ul className="list-disc pl-6 space-y-2 text-gray-900">
+            <li>Exterior Look</li>
+            <li>Interior Design</li>
+            <li>Windows</li>
+            <li>Bathrooms</li>
+            <li>Bedroom / Closets</li>
+            <li>Kitchen</li>
+            <li>Mudroom</li>
+            <li>Office</li>
+            <li>Great Room</li>
+            <li>Floorplans you like</li>
+            <li>Store (if applicable)</li>
+          </ul>
         </FormField>
   
         <FormField label="Do you have a Pinterest Board filled with your visions? If so, we would love to see it!">
@@ -653,7 +680,7 @@ const ConstructionForm = () => {
             name="pinterestLink"
             value={formData.pinterestLink}
             onChange={handleInputChange}
-            placeholder="Paste Link Here"
+            placeholder="Paste your Pinterest board link here"
           />
         </FormField>
       </div>
@@ -729,7 +756,7 @@ const ConstructionForm = () => {
           </div>
         </CardHeader>
   
-        <CardContent className="p-4 sm:p-6">
+        <CardContent className="p-4 pb-24 sm:p-6 sm:pb-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-6">
               {renderStepContent()}

@@ -7,7 +7,7 @@ interface FormFieldProps {
 
 export const FormField: React.FC<FormFieldProps> = ({ label, children }) => (
   <div className="space-y-2">
-    <label className="block text-sm font-medium text-gray-700">{label}</label>
+    <label className="block text-sm font-medium text-gray-900">{label}</label>
     {children}
   </div>
 );
@@ -17,7 +17,7 @@ interface TextInputProps {
   value: string;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
-  type?: string;  // Added type prop
+  type?: string;
 }
 
 export const TextInput: React.FC<TextInputProps> = ({ 
@@ -25,7 +25,7 @@ export const TextInput: React.FC<TextInputProps> = ({
   value, 
   onChange, 
   placeholder,
-  type = 'text'  // Default to 'text' if not specified
+  type = 'text'
 }) => (
   <input
     type={type}
@@ -33,7 +33,7 @@ export const TextInput: React.FC<TextInputProps> = ({
     value={value}
     onChange={onChange}
     placeholder={placeholder}
-    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
   />
 );
 
@@ -56,7 +56,7 @@ export const RadioGroup: React.FC<RadioGroupProps> = ({ name, options, value, on
           onChange={onChange}
           className="sr-only peer"
         />
-        <div className="w-full p-2.5 text-sm bg-white border rounded-lg peer-checked:border-blue-500 peer-checked:bg-blue-50 cursor-pointer">
+        <div className="w-full p-2.5 text-sm text-gray-900 bg-white border rounded-lg peer-checked:border-blue-500 peer-checked:bg-blue-50 cursor-pointer">
           {option.label}
         </div>
       </label>
@@ -81,7 +81,7 @@ export const CheckboxGroup: React.FC<CheckboxGroupProps> = ({ section, options, 
           onChange={() => onChange(section, option.value)}
           className="w-5 h-5 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
         />
-        <span className="ml-2 text-sm">{option.label}</span>
+        <span className="ml-2 text-sm text-gray-900">{option.label}</span>
       </label>
     ))}
   </div>
