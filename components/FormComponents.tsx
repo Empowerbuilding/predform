@@ -17,11 +17,18 @@ interface TextInputProps {
   value: string;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
+  type?: string;  // Added type prop
 }
 
-export const TextInput: React.FC<TextInputProps> = ({ name, value, onChange, placeholder }) => (
+export const TextInput: React.FC<TextInputProps> = ({ 
+  name, 
+  value, 
+  onChange, 
+  placeholder,
+  type = 'text'  // Default to 'text' if not specified
+}) => (
   <input
-    type="text"
+    type={type}
     name={name}
     value={value}
     onChange={onChange}
@@ -38,7 +45,7 @@ interface RadioGroupProps {
 }
 
 export const RadioGroup: React.FC<RadioGroupProps> = ({ name, options, value, onChange }) => (
-  <div className="grid grid-cols-2 gap-3">
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
     {options.map((option) => (
       <label key={option.value} className="relative flex items-center">
         <input
