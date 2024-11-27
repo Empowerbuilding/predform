@@ -42,6 +42,8 @@ export async function POST(request: Request) {
       
       <h2>Basic Information</h2>
       <p><strong>Name:</strong> ${formData.name}</p>
+      <p><strong>Email:</strong> ${formData.email}</p>
+      <p><strong>Phone:</strong> ${formData.phone}</p>
       <p><strong>Budget:</strong> ${formData.constructionBudget}</p>
       <p><strong>Property Address:</strong> ${formData.propertyAddress}</p>
       <p><strong>Survey Available:</strong> ${formData.hasSurvey}</p>
