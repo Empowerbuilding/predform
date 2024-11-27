@@ -155,7 +155,16 @@ const ConstructionForm = () => {
   };
 
   const handleNextStep = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent any form submission
+    e.preventDefault();
+    
+    // Validate budget field when moving from first step
+    if (currentStep === 1) {
+      if (!formData.constructionBudget || formData.constructionBudget.trim() === '') {
+        alert('Please enter your construction budget');
+        return;
+      }
+    }
+    
     setCurrentStep(currentStep + 1);
   };
 
@@ -167,12 +176,13 @@ const ConstructionForm = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Only allow submission from the review step
-    if (currentStep !== 5) {
-      setCurrentStep(5);
+    // Validate required fields before submission
+    if (!formData.constructionBudget || formData.constructionBudget.trim() === '') {
+      alert('Please enter your construction budget');
+      setCurrentStep(1); // Take user back to first step
       return;
     }
-
+  
     try {
       const response = await fetch('/api/submit-form', {
         method: 'POST',
@@ -181,11 +191,12 @@ const ConstructionForm = () => {
         },
         body: JSON.stringify(formData),
       });
-
+  
       if (!response.ok) {
-        throw new Error('Submission failed');
+        const data = await response.json();
+        throw new Error(data.message || 'Submission failed');
       }
-
+  
       alert('Form submitted successfully! Our team will review your submission.');
       
       // Reset form to initial state

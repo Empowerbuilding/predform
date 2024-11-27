@@ -28,6 +28,14 @@ export async function POST(request: Request) {
   try {
     const formData = await request.json();
 
+    // Check if budget is provided
+    if (!formData.constructionBudget || formData.constructionBudget.trim() === '') {
+      return NextResponse.json(
+        { success: false, message: 'Construction budget is required' },
+        { status: 400 }
+      );
+    }
+
     await client.connect();
     const db = client.db("construction-forms");
     
