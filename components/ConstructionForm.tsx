@@ -8,6 +8,8 @@ import { FormField, TextInput, RadioGroup, CheckboxGroup } from './FormComponent
 interface FormData {
   // Your existing interface remains exactly the same
   name: string;
+  email: string;
+  phone: string;
   constructionBudget: string;
   propertyAddress: string;
   hasSurvey: string;
@@ -44,6 +46,8 @@ const ConstructionForm = () => {
   const [formData, setFormData] = useState<FormData>({
     // Your existing initial state remains exactly the same
     name: '',
+    email: '',
+    phone: '',
     constructionBudget: '',
     propertyAddress: '',
     hasSurvey: 'yes',
@@ -188,6 +192,8 @@ const ConstructionForm = () => {
       setFormData({
         // Your exact same initial state values as before
         name: '',
+        email: '',
+        phone: '',
         constructionBudget: '',
         propertyAddress: '',
         hasSurvey: 'yes',
@@ -293,13 +299,34 @@ const ConstructionForm = () => {
           placeholder="Enter your full name"
         />
       </FormField>
+
+      <FormField label="Email Address">
+        <TextInput
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          placeholder="Enter your email address"
+        />
+      </FormField>
+
+      <FormField label="Phone Number">
+        <TextInput
+          name="phone"
+          type="tel"
+          value={formData.phone}
+          onChange={handleInputChange}
+          placeholder="Enter your phone number"
+        />
+      </FormField>
   
-      <FormField label="What is your Budget for Construction? (Not including Land/Site Prep)">
+      <FormField label="What is your Budget for Construction? (Not including Land/Site Prep) *">
         <TextInput
           name="constructionBudget"
           value={formData.constructionBudget}
           onChange={handleInputChange}
           placeholder="Type here..."
+          required
         />
       </FormField>
   

@@ -18,6 +18,7 @@ interface TextInputProps {
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
   type?: string;
+  required?: boolean;  // Add this line
 }
 
 export const TextInput: React.FC<TextInputProps> = ({ 
@@ -25,7 +26,8 @@ export const TextInput: React.FC<TextInputProps> = ({
   value, 
   onChange, 
   placeholder,
-  type = 'text'
+  type = 'text',
+  required = false  // Add this line
 }) => (
   <input
     type={type}
@@ -33,6 +35,7 @@ export const TextInput: React.FC<TextInputProps> = ({
     value={value}
     onChange={onChange}
     placeholder={placeholder}
+    required={required}  // Add this line
     className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
   />
 );
