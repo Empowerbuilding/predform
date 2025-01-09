@@ -67,18 +67,26 @@ function formatCheckboxSection(data: Record<string, boolean>, title: string) {
 
 export async function POST(request: Request) {
   try {
+    console.log('Starting form submission process...');
+    
     const formData = await request.formData();
+    console.log('Form data received');
+    
     const formDataObj: FormDataObject = {} as FormDataObject;
 
     // Convert FormData to object and parse JSON strings
     for (const [key, value] of formData.entries()) {
+      console.log(`Processing key: ${key}`);
       if (key.startsWith('inspiration_image_')) {
+        console.log(`Found image: ${(value as File).name}`);
         continue;
       } else {
         try {
           formDataObj[key] = JSON.parse(value as string);
+          console.log(`Parsed JSON for ${key}`);
         } catch {
           formDataObj[key] = value;
+          console.log(`Set value for ${key}`);
         }
       }
     }
@@ -90,14 +98,20 @@ export async function POST(request: Request) {
       );
     }
 
+    console.log('Connecting to MongoDB...');
     await client.connect();
+    console.log('Connected to MongoDB');
+    
     const db = client.db("construction-forms");
     
+    console.log('Inserting into database...');
     const result = await db.collection('submissions').insertOne({
       ...formDataObj,
       submittedAt: new Date()
     });
+    console.log('Database insertion complete');
 
+    console.log('Preparing email...');
     const emailHtml = `
       <h1>New Pre-Design Form Submission</h1>
       
@@ -150,11 +164,13 @@ export async function POST(request: Request) {
       <p><em>Submitted at: ${new Date().toLocaleString()}</em></p>
     `;
 
+    console.log('Processing attachments...');
     const attachments = await Promise.all(
       Array.from(formData.entries())
         .filter(([key]) => key.startsWith('inspiration_image_'))
         .map(async ([_, value]) => {
           const file = value as File;
+          console.log(`Converting file: ${file.name}`);
           return {
             content: await convertFileToBase64(file),
             filename: file.name,
@@ -163,6 +179,7 @@ export async function POST(request: Request) {
           };
         })
     );
+    console.log(`Processed ${attachments.length} attachments`);
 
     const emailRecipients = [
       'mitchell@barnhaussteelbuilders.com',
@@ -171,6 +188,7 @@ export async function POST(request: Request) {
       'shannon@barnhaussteelbuilders.com'
     ];
 
+    console.log('Sending email...');
     await sgMail.send({
       to: emailRecipients,
       from: 'mitchell@barnhaussteelbuilders.com',
@@ -178,6 +196,7 @@ export async function POST(request: Request) {
       html: emailHtml,
       attachments: attachments
     });
+    console.log('Email sent successfully');
 
     return NextResponse.json({ 
       success: true, 
@@ -185,12 +204,14 @@ export async function POST(request: Request) {
     });
 
   } catch (error) {
-    console.error('Submission error:', error);
+    console.error('Detailed server error:', error);
     return NextResponse.json(
-      { success: false, message: 'Error submitting form' },
+      { success: false, message: `Error submitting form: ${error.message}` },
       { status: 500 }
     );
   } finally {
-    await client.close();
+    if (client) {
+      await client.close();
+    }
   }
 }
