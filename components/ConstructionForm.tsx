@@ -266,29 +266,39 @@ const ConstructionForm = () => {
   try {
     const formDataToSubmit = new FormData();
     
+    // Log what we're sending
+    console.log('Preparing form data...');
+    
     // Add all form fields except images
     Object.entries(formData).forEach(([key, value]) => {
       if (key !== 'inspirationImages') {
         if (typeof value === 'object' && value !== null) {
+          console.log(`Adding ${key}:`, value);
           formDataToSubmit.append(key, JSON.stringify(value));
         } else {
+          console.log(`Adding ${key}:`, value);
           formDataToSubmit.append(key, value.toString());
         }
       }
     });
     
-    // Add images
+    // Log image uploads
+    console.log('Adding images...');
     formData.inspirationImages.forEach((image, index) => {
+      console.log(`Adding image ${index}:`, image.name);
       formDataToSubmit.append(`inspiration_image_${index}`, image);
     });
-    
+
+    console.log('Submitting form...');
     const response = await fetch('/api/submit-form', {
       method: 'POST',
       body: formDataToSubmit,
     });
 
+    const data = await response.json();
+    console.log('Server response:', data);
+
     if (!response.ok) {
-      const data = await response.json();
       throw new Error(data.message || 'Submission failed');
     }
 
@@ -390,7 +400,7 @@ const ConstructionForm = () => {
     setCurrentStep(1);
     
   } catch (error) {
-    console.error('Error submitting form:', error);
+    console.error('Detailed submission error:', error);
     alert('There was an error submitting the form. Please try again.');
   }
 };
