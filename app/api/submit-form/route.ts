@@ -153,12 +153,15 @@ export async function POST(request: Request) {
     const attachments = await Promise.all(
       Array.from(formData.entries())
         .filter(([key]) => key.startsWith('inspiration_image_'))
-        .map(async ([_, file]: [string, File]) => ({
-          content: await convertFileToBase64(file),
-          filename: file.name,
-          type: file.type,
-          disposition: 'attachment'
-        }))
+        .map(async ([_, value]) => {
+          const file = value as File;
+          return {
+            content: await convertFileToBase64(file),
+            filename: file.name,
+            type: file.type,
+            disposition: 'attachment'
+          };
+        })
     );
 
     const emailRecipients = [
