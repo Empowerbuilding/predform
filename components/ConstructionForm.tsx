@@ -1,9 +1,82 @@
 "use client";
 
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState, ChangeEvent, FormEvent, useCallback } from 'react';
+import { X, Upload } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { FormField, TextInput, RadioGroup, CheckboxGroup } from './FormComponents';
+
+interface ImageUploadProps {
+  onImagesChange: (images: File[]) => void;
+  maxImages?: number;
+}
+
+const ImageUpload: React.FC<ImageUploadProps> = ({ onImagesChange, maxImages = 5 }) => {
+  const [previewUrls, setPreviewUrls] = useState<{ file: File; url: string }[]>([]);
+
+  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (previewUrls.length + files.length > maxImages) {
+      alert(`You can only upload up to ${maxImages} images`);
+      return;
+    }
+
+    const newPreviews = files.map(file => ({
+      file,
+      url: URL.createObjectURL(file)
+    }));
+
+    setPreviewUrls(prev => [...prev, ...newPreviews]);
+    onImagesChange([...previewUrls.map(p => p.file), ...files]);
+  }, [maxImages, onImagesChange, previewUrls]);
+
+  const removeImage = useCallback((indexToRemove: number) => {
+    setPreviewUrls(prev => {
+      const newPreviews = prev.filter((_, index) => index !== indexToRemove);
+      onImagesChange(newPreviews.map(p => p.file));
+      return newPreviews;
+    });
+  }, [onImagesChange]);
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {previewUrls.map((preview, index) => (
+          <div key={preview.url} className="relative aspect-square">
+            <img
+              src={preview.url}
+              alt={`Preview ${index + 1}`}
+              className="w-full h-full object-cover rounded-lg"
+            />
+            <button
+              type="button"
+              onClick={() => removeImage(index)}
+              className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
+        {previewUrls.length < maxImages && (
+          <label className="border-2 border-dashed border-gray-300 rounded-lg aspect-square flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50">
+            <Upload className="w-8 h-8 text-gray-400" />
+            <span className="mt-2 text-sm text-gray-500">Upload Image</span>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+          </label>
+        )}
+      </div>
+      <p className="text-sm text-gray-500">
+        Upload up to {maxImages} images of your inspiration or specific details you'd like to include
+      </p>
+    </div>
+  );
+};
 
 interface FormData {
   // Your existing interface remains exactly the same
@@ -39,6 +112,7 @@ interface FormData {
   additionalItems: string;
   unwantedItems: string;
   pinterestLink: string;
+  inspirationImages: File[];
 }
 
 const ConstructionForm = () => {
@@ -133,7 +207,8 @@ const ConstructionForm = () => {
     additionalRequests: '',
     additionalItems: '',
     unwantedItems: '',
-    pinterestLink: ''
+    pinterestLink: '',
+    inspirationImages: []
   });
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -174,131 +249,146 @@ const ConstructionForm = () => {
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  e.preventDefault();
+  
+  // Validate required fields before submission
+  if (!formData.constructionBudget || formData.constructionBudget.trim() === '') {
+    alert('Please enter your construction budget');
+    setCurrentStep(1); // Take user back to first step
+    return;
+  }
+
+  try {
+    const formDataToSubmit = new FormData();
     
-    // Validate required fields before submission
-    if (!formData.constructionBudget || formData.constructionBudget.trim() === '') {
-      alert('Please enter your construction budget');
-      setCurrentStep(1); // Take user back to first step
-      return;
-    }
-  
-    try {
-      const response = await fetch('/api/submit-form', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-  
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Submission failed');
+    // Add all form fields except images
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key !== 'inspirationImages') {
+        if (typeof value === 'object' && value !== null) {
+          formDataToSubmit.append(key, JSON.stringify(value));
+        } else {
+          formDataToSubmit.append(key, value.toString());
+        }
       }
-  
-      alert('Form submitted successfully! Our team will review your submission.');
-      
-      // Reset form to initial state
-      setFormData({
-        // Your exact same initial state values as before
-        name: '',
-        email: '',
-        phone: '',
-        constructionBudget: '',
-        propertyAddress: '',
-        hasSurvey: 'yes',
-        hasSlope: 'yes',
-        padDirection: '',
-        living: '',
-        patios: '',
-        garage: '',
-        bedrooms: '',
-        bathrooms: '',
-        desiredRooms: {
-          greatRoom: false,
-          eatInKitchen: false,
-          breakfastNook: false,
-          laundryRoom: false,
-          officeStudy: false,
-          jackAndJillBathroom: false,
-          formalLivingRoom: false,
-          formalDiningRoom: false,
-          masterSeatingSpace: false
-        },
-        roofStyle: 'gable',
-        ceilingHeight: '9',
-        kitchenFeatures: {
-          butlerPantry: false,
-          cornerPantry: false,
-          kitchenIsland: false,
-          galleryKitchen: false,
-          lShapedKitchen: false,
-          uShapedKitchen: false,
-          breakfastBar: false
-        },
-        masterBathroom: {
-          walkInShower: false,
-          butlerPantry: false,
-          customShowerSeat: false,
-          shampooNiche: false,
-          freestandingBathtub: false,
-          makeupVanitySpace: false,
-          chandelier: false
-        },
-        masterCloset: {
-          hisAndHerSpaces: false,
-          oneLargeSpace: false,
-          connectedToMasterBedroom: false,
-          accessFromMasterBathroom: false,
-          builtInDrawersAndShelving: false
-        },
-        countertopFinishes: {
-          granite: false,
-          marble: false,
-          quartz: false,
-          laminate: false,
-          tile: false
-        },
-        flooringFinishes: {
-          ceramicTile: false,
-          stainedConcrete: false,
-          woodFlooring: false,
-          vinylFlooring: false,
-          carpet: false
-        },
-        fireplace: 'yes',
-        fireplaceType: {
-          woodBurning: false,
-          electric: false,
-          gasPropane: false
-        },
-        porchLocations: {
-          frontPorch: false,
-          rearPorch: false,
-          sidePorch: false
-        },
-        patiosCovered: 'yes',
-        patioCeilingMaterial: '',
-        waterHeater: 'tank',
-        insulationType: {
-          sprayFoam: false,
-          vinylBacked: false,
-          batt: false,
-          looseFillAndBlowIn: false
-        },
-        additionalRequests: '',
-        additionalItems: '',
-        unwantedItems: '',
-        pinterestLink: ''
-      });
-      setCurrentStep(1);
-      
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('There was an error submitting the form. Please try again.');
+    });
+    
+    // Add images
+    formData.inspirationImages.forEach((image, index) => {
+      formDataToSubmit.append(`inspiration_image_${index}`, image);
+    });
+    
+    const response = await fetch('/api/submit-form', {
+      method: 'POST',
+      body: formDataToSubmit,
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.message || 'Submission failed');
     }
-  };
+
+    alert('Form submitted successfully! Our team will review your submission.');
+    
+    // Reset form to initial state
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      constructionBudget: '',
+      propertyAddress: '',
+      hasSurvey: 'yes',
+      hasSlope: 'yes',
+      padDirection: '',
+      living: '',
+      patios: '',
+      garage: '',
+      bedrooms: '',
+      bathrooms: '',
+      desiredRooms: {
+        greatRoom: false,
+        eatInKitchen: false,
+        breakfastNook: false,
+        laundryRoom: false,
+        officeStudy: false,
+        jackAndJillBathroom: false,
+        formalLivingRoom: false,
+        formalDiningRoom: false,
+        masterSeatingSpace: false
+      },
+      roofStyle: 'gable',
+      ceilingHeight: '9',
+      kitchenFeatures: {
+        butlerPantry: false,
+        cornerPantry: false,
+        kitchenIsland: false,
+        galleryKitchen: false,
+        lShapedKitchen: false,
+        uShapedKitchen: false,
+        breakfastBar: false
+      },
+      masterBathroom: {
+        walkInShower: false,
+        butlerPantry: false,
+        customShowerSeat: false,
+        shampooNiche: false,
+        freestandingBathtub: false,
+        makeupVanitySpace: false,
+        chandelier: false
+      },
+      masterCloset: {
+        hisAndHerSpaces: false,
+        oneLargeSpace: false,
+        connectedToMasterBedroom: false,
+        accessFromMasterBathroom: false,
+        builtInDrawersAndShelving: false
+      },
+      countertopFinishes: {
+        granite: false,
+        marble: false,
+        quartz: false,
+        laminate: false,
+        tile: false
+      },
+      flooringFinishes: {
+        ceramicTile: false,
+        stainedConcrete: false,
+        woodFlooring: false,
+        vinylFlooring: false,
+        carpet: false
+      },
+      fireplace: 'yes',
+      fireplaceType: {
+        woodBurning: false,
+        electric: false,
+        gasPropane: false
+      },
+      porchLocations: {
+        frontPorch: false,
+        rearPorch: false,
+        sidePorch: false
+      },
+      patiosCovered: 'yes',
+      patioCeilingMaterial: '',
+      waterHeater: 'tank',
+      insulationType: {
+        sprayFoam: false,
+        vinylBacked: false,
+        batt: false,
+        looseFillAndBlowIn: false
+      },
+      additionalRequests: '',
+      additionalItems: '',
+      unwantedItems: '',
+      pinterestLink: '',
+      inspirationImages: [] // Make sure to include this in the reset
+    });
+    setCurrentStep(1);
+    
+  } catch (error) {
+    console.error('Error submitting form:', error);
+    alert('There was an error submitting the form. Please try again.');
+  }
+};
 
   const renderBasicInfo = () => (
     <div className="space-y-6">
@@ -673,57 +763,64 @@ const ConstructionForm = () => {
   );
 
   const renderReview = () => (
-    <div className="space-y-8">
-      <FormField label="Are there any items or spaces that you would like in your new home that were not covered in this predesign form?">
-        <textarea
-          name="additionalItems"
-          className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
-          rows={4}
-          value={formData.additionalItems}
+  <div className="space-y-8">
+    <FormField label="Are there any items or spaces that you would like in your new home that were not covered in this predesign form?">
+      <textarea
+        name="additionalItems"
+        className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
+        rows={4}
+        value={formData.additionalItems}
+        onChange={handleInputChange}
+        placeholder="Enter any additional items or spaces here..."
+      />
+    </FormField>
+
+    <FormField label="Are there any specific items that you DO NOT WANT in your new home?">
+      <textarea
+        name="unwantedItems"
+        className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
+        rows={4}
+        value={formData.unwantedItems}
+        onChange={handleInputChange}
+        placeholder="Enter any unwanted items here..."
+      />
+    </FormField>
+
+    <div className="space-y-4">
+      <FormField label="Pinterest Board of Ideas for:">
+        <ul className="list-disc pl-6 space-y-2 text-gray-900">
+          <li>Exterior Look</li>
+          <li>Interior Design</li>
+          <li>Windows</li>
+          <li>Bathrooms</li>
+          <li>Bedroom / Closets</li>
+          <li>Kitchen</li>
+          <li>Mudroom</li>
+          <li>Office</li>
+          <li>Great Room</li>
+          <li>Floorplans you like</li>
+          <li>Store (if applicable)</li>
+        </ul>
+      </FormField>
+
+      <FormField label="Do you have a Pinterest Board filled with your visions? If so, we would love to see it!">
+        <TextInput
+          name="pinterestLink"
+          value={formData.pinterestLink}
           onChange={handleInputChange}
-          placeholder="Enter any additional items or spaces here..."
+          placeholder="Paste your Pinterest board link here"
         />
       </FormField>
-  
-      <FormField label="Are there any specific items that you DO NOT WANT in your new home?">
-        <textarea
-          name="unwantedItems"
-          className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
-          rows={4}
-          value={formData.unwantedItems}
-          onChange={handleInputChange}
-          placeholder="Enter any unwanted items here..."
+
+      <FormField label="Upload Inspiration Images">
+        <ImageUpload
+          onImagesChange={(images) => setFormData(prev => ({ ...prev, inspirationImages: images }))}
+          maxImages={5}
         />
       </FormField>
-  
-      <div className="space-y-4">
-        <FormField label="Pinterest Board of Ideas for:">
-          <ul className="list-disc pl-6 space-y-2 text-gray-900">
-            <li>Exterior Look</li>
-            <li>Interior Design</li>
-            <li>Windows</li>
-            <li>Bathrooms</li>
-            <li>Bedroom / Closets</li>
-            <li>Kitchen</li>
-            <li>Mudroom</li>
-            <li>Office</li>
-            <li>Great Room</li>
-            <li>Floorplans you like</li>
-            <li>Store (if applicable)</li>
-          </ul>
-        </FormField>
-  
-        <FormField label="Do you have a Pinterest Board filled with your visions? If so, we would love to see it!">
-          <TextInput
-            name="pinterestLink"
-            value={formData.pinterestLink}
-            onChange={handleInputChange}
-            placeholder="Paste your Pinterest board link here"
-          />
-        </FormField>
-      </div>
     </div>
-  );
+  </div>
+);
 
   const renderStepContent = () => {
     switch(currentStep) {
