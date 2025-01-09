@@ -13,6 +13,12 @@ const client = new MongoClient(uri, {
   }
 });
 
+// Add this new function for file conversion
+async function convertFileToBase64(file: File) {
+  const buffer = await file.arrayBuffer();
+  return Buffer.from(buffer).toString('base64');
+}
+
 function formatCheckboxSection(data: Record<string, boolean>, title: string) {
   const selectedItems = Object.entries(data)
     .filter(([, value]) => value)
@@ -33,8 +39,7 @@ export async function POST(request: Request) {
     // Convert FormData to object and parse JSON strings
     for (const [key, value] of formData.entries()) {
       if (key.startsWith('inspiration_image_')) {
-        // Handle image files separately if needed
-        // You might want to store these in a cloud storage service
+        // Skip image files in the main object
         continue;
       } else {
         try {
@@ -116,6 +121,18 @@ export async function POST(request: Request) {
       <p><em>Submitted at: ${new Date().toLocaleString()}</em></p>
     `;
 
+    // Process attachments
+    const attachments = await Promise.all(
+      Array.from(formData.entries())
+        .filter(([key]) => key.startsWith('inspiration_image_'))
+        .map(async ([_, file]: [string, File]) => ({
+          content: await convertFileToBase64(file),
+          filename: file.name,
+          type: file.type,
+          disposition: 'attachment'
+        }))
+    );
+
     // Multiple recipients array
     const emailRecipients = [
       'mitchell@barnhaussteelbuilders.com',
@@ -129,6 +146,7 @@ export async function POST(request: Request) {
       from: 'mitchell@barnhaussteelbuilders.com',
       subject: `New Pre-Design Form Submission from ${formDataObj.name}`,
       html: emailHtml,
+      attachments: attachments
     });
 
     return NextResponse.json({ 
