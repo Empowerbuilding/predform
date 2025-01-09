@@ -43,15 +43,20 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImagesChange, maxImages = 5
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {previewUrls.map((preview, index) => (
           <div key={preview.url} className="relative aspect-square">
-            <img
-              src={preview.url}
-              alt={`Preview ${index + 1}`}
-              className="w-full h-full object-cover rounded-lg"
-            />
+            <div className="relative w-full h-full">
+              <Image
+                src={preview.url}
+                alt={`Preview ${index + 1}`}
+                className="object-cover rounded-lg"
+                fill
+                sizes="(max-width: 768px) 50vw, 33vw"
+                unoptimized // Add this since we're using object URLs
+              />
+            </div>
             <button
               type="button"
               onClick={() => removeImage(index)}
-              className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+              className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 z-10"
             >
               <X className="w-4 h-4" />
             </button>
