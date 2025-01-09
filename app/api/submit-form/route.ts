@@ -2,6 +2,42 @@ import { NextResponse } from 'next/server';
 import { MongoClient, ServerApiVersion } from 'mongodb';
 import sgMail from '@sendgrid/mail';
 
+interface FormDataObject {
+  name: string;
+  email: string;
+  phone: string;
+  constructionBudget: string;
+  propertyAddress: string;
+  hasSurvey: string;
+  hasSlope: string;
+  padDirection: string;
+  living: string;
+  patios: string;
+  garage: string;
+  bedrooms: string;
+  bathrooms: string;
+  desiredRooms: Record<string, boolean>;
+  roofStyle: string;
+  ceilingHeight: string;
+  kitchenFeatures: Record<string, boolean>;
+  masterBathroom: Record<string, boolean>;
+  masterCloset: Record<string, boolean>;
+  countertopFinishes: Record<string, boolean>;
+  flooringFinishes: Record<string, boolean>;
+  fireplace: string;
+  fireplaceType: Record<string, boolean>;
+  porchLocations: Record<string, boolean>;
+  patiosCovered: string;
+  patioCeilingMaterial: string;
+  waterHeater: string;
+  insulationType: Record<string, boolean>;
+  additionalRequests: string;
+  additionalItems: string;
+  unwantedItems: string;
+  pinterestLink: string;
+  [key: string]: unknown;
+}
+
 sgMail.setApiKey(process.env.SENDGRID_API_KEY as string);
 
 const uri = process.env.MONGODB_URI as string;
@@ -13,7 +49,6 @@ const client = new MongoClient(uri, {
   }
 });
 
-// Add this new function for file conversion
 async function convertFileToBase64(file: File) {
   const buffer = await file.arrayBuffer();
   return Buffer.from(buffer).toString('base64');
@@ -32,27 +67,22 @@ function formatCheckboxSection(data: Record<string, boolean>, title: string) {
 
 export async function POST(request: Request) {
   try {
-    // Handle multipart form data
     const formData = await request.formData();
-    const formDataObj: any = {};
+    const formDataObj: FormDataObject = {} as FormDataObject;
 
     // Convert FormData to object and parse JSON strings
     for (const [key, value] of formData.entries()) {
       if (key.startsWith('inspiration_image_')) {
-        // Skip image files in the main object
         continue;
       } else {
         try {
-          // Try to parse as JSON for object fields
           formDataObj[key] = JSON.parse(value as string);
         } catch {
-          // If not JSON, use the value as is
           formDataObj[key] = value;
         }
       }
     }
 
-    // Check if budget is provided
     if (!formDataObj.constructionBudget || formDataObj.constructionBudget.trim() === '') {
       return NextResponse.json(
         { success: false, message: 'Construction budget is required' },
@@ -68,7 +98,6 @@ export async function POST(request: Request) {
       submittedAt: new Date()
     });
 
-    // Create comprehensive email HTML
     const emailHtml = `
       <h1>New Pre-Design Form Submission</h1>
       
@@ -121,7 +150,6 @@ export async function POST(request: Request) {
       <p><em>Submitted at: ${new Date().toLocaleString()}</em></p>
     `;
 
-    // Process attachments
     const attachments = await Promise.all(
       Array.from(formData.entries())
         .filter(([key]) => key.startsWith('inspiration_image_'))
@@ -133,7 +161,6 @@ export async function POST(request: Request) {
         }))
     );
 
-    // Multiple recipients array
     const emailRecipients = [
       'mitchell@barnhaussteelbuilders.com',
       'michael@barnhaussteelbuilders.com',
