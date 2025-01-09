@@ -203,10 +203,13 @@ export async function POST(request: Request) {
       message: 'Form submitted successfully' 
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Detailed server error:', error);
     return NextResponse.json(
-      { success: false, message: `Error submitting form: ${error.message}` },
+      { 
+        success: false, 
+        message: `Error submitting form: ${error instanceof Error ? error.message : 'Unknown error occurred'}` 
+      },
       { status: 500 }
     );
   } finally {
