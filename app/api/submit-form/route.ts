@@ -144,7 +144,7 @@ export async function POST(request: Request) {
       <p><strong>Additional Items Wanted:</strong> ${formDataObj.additionalItems || 'None'}</p>
       <p><strong>Unwanted Items:</strong> ${formDataObj.unwantedItems || 'None'}</p>
       <p><strong>Pinterest Board:</strong> ${formDataObj.pinterestLink || 'None provided'}</p>
-      <p><strong>Number of Inspiration Images:</strong> ${formData.getAll(/inspiration_image_\d+/).length}</p>
+      <p><strong>Number of Inspiration Images:</strong> ${Array.from(formData.entries()).filter(([key]) => key.startsWith('inspiration_image_')).length}</p>
 
       <p><strong>Database ID:</strong> ${result.insertedId}</p>
       <p><em>Submitted at: ${new Date().toLocaleString()}</em></p>
