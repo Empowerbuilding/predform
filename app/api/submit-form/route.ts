@@ -6,7 +6,7 @@ interface FormDataObject {
   name: string;
   email: string;
   phone: string;
-  constructionBudget: string;
+  constructionBudget: string | number;
   propertyAddress: string;
   hasSurvey: string;
   hasSlope: string;
@@ -91,7 +91,9 @@ export async function POST(request: Request) {
       }
     }
 
-    if (!formDataObj.constructionBudget || formDataObj.constructionBudget.trim() === '') {
+    if (!formDataObj.constructionBudget || 
+        (typeof formDataObj.constructionBudget === 'string' && formDataObj.constructionBudget.trim() === '') ||
+        (typeof formDataObj.constructionBudget === 'number' && formDataObj.constructionBudget <= 0)) {
       return NextResponse.json(
         { success: false, message: 'Construction budget is required' },
         { status: 400 }
