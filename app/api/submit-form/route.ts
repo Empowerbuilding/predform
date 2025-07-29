@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { MongoClient, ServerApiVersion } from 'mongodb';
+import { createClient } from '@supabase/supabase-js';
 import sgMail from '@sendgrid/mail';
 
 interface FormDataObject {
@@ -38,16 +38,43 @@ interface FormDataObject {
   [key: string]: unknown;
 }
 
+// Initialize Supabase
+const supabaseUrl = process.env.SUPABASE_URL as string;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Initialize SendGrid
 sgMail.setApiKey(process.env.SENDGRID_API_KEY as string);
 
-const uri = process.env.MONGODB_URI as string;
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
+async function uploadFileToSupabase(file: File, fileName: string) {
+  const buffer = await file.arrayBuffer();
+  const uint8Array = new Uint8Array(buffer);
+  
+  const { data, error } = await supabase.storage
+    .from('inspiration-images')
+    .upload(fileName, uint8Array, {
+      contentType: file.type,
+      upsert: false
+    });
+
+  if (error) {
+    console.error('File upload error:', error);
+    throw error;
   }
-});
+
+  // Get public URL
+  const { data: urlData } = supabase.storage
+    .from('inspiration-images')
+    .getPublicUrl(fileName);
+
+  return {
+    path: data.path,
+    url: urlData.publicUrl,
+    name: file.name,
+    type: file.type,
+    size: file.size
+  };
+}
 
 async function convertFileToBase64(file: File) {
   const buffer = await file.arrayBuffer();
@@ -100,17 +127,90 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log('Connecting to MongoDB...');
-    await client.connect();
-    console.log('Connected to MongoDB');
-    
-    const db = client.db("construction-forms");
-    
-    console.log('Inserting into database...');
-    const result = await db.collection('submissions').insertOne({
-      ...formDataObj,
-      submittedAt: new Date()
-    });
+    console.log('Processing file uploads...');
+    const imageFiles = Array.from(formData.entries())
+      .filter(([key]) => key.startsWith('inspiration_image_'))
+      .map(([_, value]) => value as File);
+
+    const uploadedImages = [];
+    for (let i = 0; i < imageFiles.length; i++) {
+      const file = imageFiles[i];
+      const fileName = `${Date.now()}-${i}-${file.name}`;
+      console.log(`Uploading file: ${fileName}`);
+      
+      try {
+        const uploadResult = await uploadFileToSupabase(file, fileName);
+        uploadedImages.push(uploadResult);
+        console.log(`File uploaded successfully: ${fileName}`);
+      } catch (error) {
+        console.error(`Failed to upload file ${fileName}:`, error);
+        // Continue with other files even if one fails
+      }
+    }
+
+    console.log('Saving to Supabase database...');
+    const { data, error } = await supabase
+      .from('construction_submissions')
+      .insert([
+        {
+          // Basic Information
+          name: formDataObj.name,
+          email: formDataObj.email,
+          phone: formDataObj.phone,
+          construction_budget: formDataObj.constructionBudget.toString(),
+          property_address: formDataObj.propertyAddress,
+          has_survey: formDataObj.hasSurvey,
+          has_slope: formDataObj.hasSlope,
+          pad_direction: formDataObj.padDirection,
+          
+          // Property Details
+          living: formDataObj.living,
+          patios: formDataObj.patios,
+          garage: formDataObj.garage,
+          bedrooms: formDataObj.bedrooms,
+          bathrooms: formDataObj.bathrooms,
+          desired_rooms: formDataObj.desiredRooms,
+          
+          // Design Preferences
+          roof_style: formDataObj.roofStyle,
+          ceiling_height: formDataObj.ceilingHeight,
+          kitchen_features: formDataObj.kitchenFeatures,
+          master_bathroom: formDataObj.masterBathroom,
+          master_closet: formDataObj.masterCloset,
+          countertop_finishes: formDataObj.countertopFinishes,
+          flooring_finishes: formDataObj.flooringFinishes,
+          
+          // Special Features
+          fireplace: formDataObj.fireplace,
+          fireplace_type: formDataObj.fireplaceType,
+          porch_locations: formDataObj.porchLocations,
+          patios_covered: formDataObj.patiosCovered,
+          patio_ceiling_material: formDataObj.patioCeilingMaterial,
+          water_heater: formDataObj.waterHeater,
+          insulation_type: formDataObj.insulationType,
+          
+          // Additional Information
+          additional_requests: formDataObj.additionalRequests,
+          additional_items: formDataObj.additionalItems,
+          unwanted_items: formDataObj.unwantedItems,
+          pinterest_link: formDataObj.pinterestLink,
+          
+          // File attachments
+          inspiration_images: uploadedImages,
+          
+          submitted_at: new Date().toISOString()
+        }
+      ])
+      .select();
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return NextResponse.json(
+        { success: false, message: 'Failed to save form data' },
+        { status: 500 }
+      );
+    }
+
     console.log('Database insertion complete');
 
     console.log('Preparing email...');
@@ -160,19 +260,27 @@ export async function POST(request: Request) {
       <p><strong>Additional Items Wanted:</strong> ${formDataObj.additionalItems || 'None'}</p>
       <p><strong>Unwanted Items:</strong> ${formDataObj.unwantedItems || 'None'}</p>
       <p><strong>Pinterest Board:</strong> ${formDataObj.pinterestLink || 'None provided'}</p>
-      <p><strong>Number of Inspiration Images:</strong> ${Array.from(formData.entries()).filter(([key]) => key.startsWith('inspiration_image_')).length}</p>
+      
+      <h2>Inspiration Images</h2>
+      <p><strong>Number of Images:</strong> ${uploadedImages.length}</p>
+      ${uploadedImages.length > 0 ? `
+        <h3>Image Links:</h3>
+        <ul>
+          ${uploadedImages.map(img => `<li><a href="${img.url}" target="_blank">${img.name}</a></li>`).join('')}
+        </ul>
+      ` : ''}
 
-      <p><strong>Database ID:</strong> ${result.insertedId}</p>
+      <p><strong>Database ID:</strong> ${data[0].id}</p>
       <p><em>Submitted at: ${new Date().toLocaleString()}</em></p>
     `;
 
-    console.log('Processing attachments...');
+    console.log('Processing email attachments...');
     const attachments = await Promise.all(
       Array.from(formData.entries())
         .filter(([key]) => key.startsWith('inspiration_image_'))
         .map(async ([_, value]) => {
           const file = value as File;
-          console.log(`Converting file: ${file.name}`);
+          console.log(`Converting file for email: ${file.name}`);
           return {
             content: await convertFileToBase64(file),
             filename: file.name,
@@ -181,7 +289,7 @@ export async function POST(request: Request) {
           };
         })
     );
-    console.log(`Processed ${attachments.length} attachments`);
+    console.log(`Processed ${attachments.length} email attachments`);
 
     const emailRecipients = [
       'mitchell@barnhaussteelbuilders.com',
@@ -202,7 +310,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Form submitted successfully' 
+      message: 'Form submitted successfully',
+      id: data[0].id,
+      images: uploadedImages.length
     });
 
   } catch (error: unknown) {
@@ -214,9 +324,5 @@ export async function POST(request: Request) {
       },
       { status: 500 }
     );
-  } finally {
-    if (client) {
-      await client.close();
-    }
   }
 }
